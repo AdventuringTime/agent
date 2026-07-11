@@ -1,8 +1,14 @@
-from agent import chat_with_agent
+from agent import Agent
 
 
 if __name__ == "__main__":
-    user_input = input(">>> ").strip()
-    if user_input:
-        response = chat_with_agent(user_input)
+    agent = Agent(system_prompt="请用简短、自然的语言回复用户，就像人们之间日常聊天一样。")
+    session = agent.create_session()
+
+    while True:
+        user_input = input(">>> ").strip()
+        if not user_input:
+            break
+        
+        response = session.chat(user_input)
         print(response)
