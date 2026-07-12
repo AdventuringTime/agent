@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                                QTextEdit, QPushButton, QScrollArea,
                                QLabel)
@@ -189,7 +191,8 @@ class AgentWindow(BaseWindow):
             return
 
         self.add_message("user_text", text)
-        self.add_log("input", f"thinking:{self.thinking_mode}, pro:{self.pro_mode}, {text}")
+        final_text = "元数据：\n当前时间 " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n用户输入：\n" + text
+        self.add_log("input", f"thinking:{self.thinking_mode}, pro:{self.pro_mode}\n{final_text}")
 
         thinking_enabled = self.thinking_mode
         pro_enabled = self.pro_mode
@@ -201,7 +204,7 @@ class AgentWindow(BaseWindow):
 
         self.input_edit.clear()
 
-        self.agent_thread.send_message(text, pro_enabled, thinking_enabled)
+        self.agent_thread.send_message(final_text, pro_enabled, thinking_enabled)
 
     def handle_response(self, response):
         """
