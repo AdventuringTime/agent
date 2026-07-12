@@ -259,12 +259,6 @@ class AgentWindow(BaseWindow):
                     padding: 8px 12px;
                 }
             """)
-            inner_widget = QWidget()
-            inner_widget.setContentsMargins(60, 0, 0, 0)
-            inner_layout = QHBoxLayout(inner_widget)
-            inner_layout.addStretch()
-            inner_layout.addWidget(text_label)
-            message_layout.addWidget(inner_widget)
         elif message_type == "assistant_text":
             text_label.setStyleSheet("""
                 QLabel {
@@ -272,9 +266,10 @@ class AgentWindow(BaseWindow):
                     font-size: 14px;
                 }
             """)
-            message_layout.addWidget(text_label)
         else:
             raise ValueError(f"Unknown message_type: {message_type}")
+        message_layout.addWidget(text_label)
+        # 该框架下尝试使 text_label 只占部分空间对齐会导致异常的自动换行
 
         text_label.adjustSize()
 
