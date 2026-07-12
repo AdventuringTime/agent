@@ -1,9 +1,9 @@
 import os
-from anthropic import Anthropic
+from anthropic import Anthropic, omit
 
 
 class Session:
-    def __init__(self, agent: Agent, pro=False, thinking=False, system_prompt=None, max_tokens=1000):
+    def __init__(self, agent: Agent, pro=False, thinking=False, system_prompt=omit, max_tokens=1000, temperature=omit):
         """
         初始化会话。
 
@@ -13,11 +13,13 @@ class Session:
             thinking (bool, default=False): 是否启用思考。
             system_prompt (str, optional): 系统提示。
             max_tokens (int, optional): 最大令牌数。
+            temperature (float, optional): 温度参数。
         """
         self.agent = agent
         self.messages = []
         self.system_prompt = system_prompt
         self.pro = pro
+        self.temperature = temperature
         self.thinking = thinking
         self.max_tokens = max_tokens
 
@@ -38,6 +40,7 @@ class Session:
             model="deepseek-v4-pro" if self.pro else "deepseek-v4-flash",
             thinking={"type": "enabled" if self.thinking else "disabled"},
             max_tokens=self.max_tokens,
+            temperature=self.temperature,
         )
         
         assistant_text = response.content[0].text
@@ -46,20 +49,22 @@ class Session:
         return response
 
 class Agent:
-    def __init__(self, system_prompt=None, api_key=None, base_url="https://api.deepseek.com/anthropic"):
+    def __init__(self, system_prompt=omit, temperature=omit, api_key=None, base_url="https://api.deepseek.com/anthropic"):
         """
         初始化智能体。
 
         Parameters:
             system_prompt (str, optional): 系统提示。
+            temperature (float, optional): 温度参数。
             api_key (str, optional): Deepseek API 密钥。
             base_url (str, optional): Deepseek API 基础 URL。
         """
         self.system_prompt = system_prompt
+        self.temperature = temperature
         self.client = Anthropic(api_key=api_key or os.environ.get("DEEPSEEK_API_KEY"), base_url=base_url)
         self.sessions = []
 
-    def create_session(self, pro=False, thinking=False, max_tokens=1000):
+    def create_session(self, pro=False, thinking=False, max_tokens=1000, temperature=omit):
         """
         创建会话。
 
@@ -76,6 +81,7 @@ class Agent:
             thinking=thinking,
             system_prompt=self.system_prompt,
             max_tokens=max_tokens,
+            temperature=self.temperature,
         )
         self.sessions.append(session)
         return session

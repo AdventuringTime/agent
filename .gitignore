@@ -1,5 +1,6 @@
 /refs/
 /.trae/
 __pycache__/
+/prompts/
 AGENTS.md
 CLAUDE.md
