@@ -248,6 +248,7 @@ class AgentWindow(BaseWindow):
 
         text_label = QLabel(text)
         text_label.setWordWrap(True)
+        text_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
         if message_type == "user_text":
             text_label.setStyleSheet("""
