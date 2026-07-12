@@ -1,8 +1,13 @@
+import sys
+from pathlib import Path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 import os
 from agent import Agent
 
 
-prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "system_prompt.md")
+prompt_path = os.path.join(project_root, "prompts", "system_prompt.md")
 with open(prompt_path, "r", encoding="utf-8") as f:
     system_prompt = f.read().strip()
 agent1 = Agent(system_prompt=system_prompt, temperature=1.2)
