@@ -238,6 +238,11 @@ class AgentWindow(BaseWindow):
                 self.add_log("warning", f"stop_reason: {response.stop_reason}", "yellow")
         except Exception:
             import traceback
+            try:
+                from core.error_window import show_error_window
+                show_error_window(None, traceback.format_exc(), self)
+            except ImportError:
+                pass
             self.add_log("error", traceback.format_exc(), "red")
 
     def handle_error(self, error_message):
@@ -247,6 +252,11 @@ class AgentWindow(BaseWindow):
         Parameters:
             error_message (str): 错误信息
         """
+        try:
+            from core.error_window import show_error_window
+            show_error_window(None, error_message, self)
+        except ImportError:
+            pass
         self.add_log("error", error_message, "red")
 
     def add_message(self, message_type, text):

@@ -78,7 +78,7 @@ class AgentThread(QThread):
 
             except queue.Empty:
                 continue
-            except Exception as e:
+            except Exception:
                 self.error_occurred.emit(traceback.format_exc())
 
         self.agent = None
