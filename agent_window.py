@@ -239,8 +239,8 @@ class AgentWindow(BaseWindow):
         except Exception:
             import traceback
             try:
-                from core.error_window import show_error_window
-                show_error_window(None, traceback.format_exc(), self)
+                from core.error_window import show_error_dialog
+                show_error_dialog(None, traceback.format_exc(), self)
             except ImportError:
                 pass
             self.add_log("error", traceback.format_exc(), "red")
@@ -253,8 +253,8 @@ class AgentWindow(BaseWindow):
             error_message (str): 错误信息
         """
         try:
-            from core.error_window import show_error_window
-            show_error_window(None, error_message, self)
+            from core.error_window import show_error_dialog
+            show_error_dialog(None, error_message, self)
         except ImportError:
             pass
         self.add_log("error", error_message, "red")
