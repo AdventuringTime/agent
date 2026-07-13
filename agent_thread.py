@@ -1,6 +1,8 @@
 from PySide6.QtCore import QThread, Signal
 import queue
 import os
+import traceback
+
 
 try:
     from agent import Agent, Session
@@ -41,6 +43,7 @@ def stop_agent_thread():
 class AgentThread(QThread):
     response_received = Signal(object)
     session_created = Signal()
+    error_occurred = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -70,11 +73,13 @@ class AgentThread(QThread):
                 elif message_type == 'chat':
                     _, message, pro_enabled, thinking_enabled = message_data
                     if self.session is not None:
-                        response = self.session.chat(message, pro=pro_enabled, thinking=thinking_enabled)
-                        self.response_received.emit(response)
+                            response = self.session.chat(message, pro=pro_enabled, thinking=thinking_enabled)
+                            self.response_received.emit(response)
 
             except queue.Empty:
                 continue
+            except Exception as e:
+                self.error_occurred.emit(traceback.format_exc())
 
         self.agent = None
         self.session = None

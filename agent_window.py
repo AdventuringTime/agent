@@ -65,6 +65,7 @@ class AgentWindow(BaseWindow):
 
         self.agent_thread = get_agent_thread()
         self.agent_thread.response_received.connect(self.handle_response)
+        self.agent_thread.error_occurred.connect(self.handle_error)
         self.agent_thread.create_session()
 
         self.init_ui()
@@ -216,26 +217,37 @@ class AgentWindow(BaseWindow):
         Parameters:
             response: Agent响应对象
         """
-        assistant_text = ""
+        try:
+            for block in response.content:
+                if block.type == "thinking":
+                    self.add_log("thinking", block.thinking)
+                elif block.type == "text":
+                    assistant_text = block.text
+                    self.add_message("assistant_text", assistant_text)
+                    self.add_log("output", assistant_text)
+                else:
+                    self.add_log("error", f"Unexpected block type: {block.type}", "red")
 
-        for block in response.content:
-            if block.type == "thinking":
-                self.add_log("thinking", block.thinking)
-            elif block.type == "text":
-                assistant_text = block.text
-                self.add_message("assistant_text", assistant_text)
-                self.add_log("output", assistant_text)
+            if response.stop_reason in ['end_turn', 'max_tokens', 'stop_sequence']:
+                usage_str = f"usage:" \
+                           f"cache_read_input_tokens={response.usage.cache_read_input_tokens}, " \
+                           f"input_tokens={response.usage.input_tokens}, " \
+                           f"output_tokens={response.usage.output_tokens}"
+                self.add_log("usage", usage_str)
             else:
-                raise RuntimeError(f"Unexpected block type: {block.type}")
+                self.add_log("warning", f"stop_reason: {response.stop_reason}", "yellow")
+        except Exception:
+            import traceback
+            self.add_log("error", traceback.format_exc(), "red")
 
-        if response.stop_reason == "end_turn":
-            usage_str = f"usage:" \
-                       f"cache_read_input_tokens={response.usage.cache_read_input_tokens}, " \
-                       f"input_tokens={response.usage.input_tokens}, " \
-                       f"output_tokens={response.usage.output_tokens}"
-            self.add_log("usage", usage_str)
-        else:
-            raise RuntimeError(f"Unexpected stop_reason: {response.stop_reason}")
+    def handle_error(self, error_message):
+        """
+        处理线程错误
+
+        Parameters:
+            error_message (str): 错误信息
+        """
+        self.add_log("error", error_message, "red")
 
     def add_message(self, message_type, text):
         """
@@ -278,17 +290,16 @@ class AgentWindow(BaseWindow):
         message_layout.addWidget(text_label)
         # 该框架下尝试使 text_label 只占部分空间对齐会导致异常的自动换行
 
-        text_label.adjustSize()
-
         self.conversation_layout.insertWidget(self.conversation_layout.count() - 1, message_widget)
 
-    def add_log(self, log_type, text):
+    def add_log(self, log_type, text, style=None):
         """
         添加日志到日志面板
 
         Parameters:
             log_type (str): 日志类型，如 "input", "thinking", "output"
             text (str): 日志内容
+            style (str, optional): 日志标签颜色样式，如 "yellow", "red" 默认 None
         """
         log_widget = QWidget()
         log_layout = QVBoxLayout(log_widget)
@@ -297,13 +308,30 @@ class AgentWindow(BaseWindow):
 
         type_label = QLabel(log_type)
         type_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        type_label.setStyleSheet("""
-            QLabel {
-                color: #007AFF;
-                font-size: 12px;
-                font-family: Consolas, Monaco, monospace;
-            }
-        """)
+        if style == "yellow":
+            type_label.setStyleSheet("""
+                QLabel {
+                    color: #FFD700;
+                    font-size: 12px;
+                    font-family: Consolas, Monaco, monospace;
+                }
+            """)
+        elif style == "red":
+            type_label.setStyleSheet("""
+                QLabel {
+                    color: #FF0000;
+                    font-size: 12px;
+                    font-family: Consolas, Monaco, monospace;
+                }
+            """)
+        else:
+            type_label.setStyleSheet("""
+                QLabel {
+                    color: #007AFF;
+                    font-size: 12px;
+                    font-family: Consolas, Monaco, monospace;
+                }
+            """)
 
         text_label = QLabel(text)
         text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
