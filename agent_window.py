@@ -4,7 +4,10 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                                QTextEdit, QPushButton, QScrollArea,
                                QLabel)
 from PySide6.QtCore import Qt
-from .agent_thread import get_agent_thread, stop_agent_thread
+try:
+    from agent_thread import get_agent_thread, stop_agent_thread
+except ImportError:
+    from .agent_thread import get_agent_thread, stop_agent_thread
 
 __all__ = ['AgentWindow', 'stop_agent_thread']
 
@@ -251,7 +254,7 @@ class AgentWindow(BaseWindow):
 
         text_label = QLabel(text)
         text_label.setWordWrap(True)
-        text_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 
         if message_type == "user_text":
             text_label.setStyleSheet("""
@@ -293,6 +296,7 @@ class AgentWindow(BaseWindow):
         log_layout.setSpacing(2)
 
         type_label = QLabel(log_type)
+        type_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         type_label.setStyleSheet("""
             QLabel {
                 color: #007AFF;
@@ -302,6 +306,7 @@ class AgentWindow(BaseWindow):
         """)
 
         text_label = QLabel(text)
+        text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         text_label.setWordWrap(True)
         text_label.setStyleSheet("""
             QLabel {
