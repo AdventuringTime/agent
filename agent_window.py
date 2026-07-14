@@ -100,6 +100,7 @@ class AgentWindow(BaseWindow):
 
         self.conversation_container = QWidget()
         self.conversation_layout = QVBoxLayout(self.conversation_container)
+        self.conversation_layout.setSpacing(12)
         self.conversation_layout.addStretch()
 
         self.scroll_area.setWidget(self.conversation_container)
@@ -218,24 +219,40 @@ class AgentWindow(BaseWindow):
             response: Agent响应对象
         """
         try:
-            for block in response.content:
-                if block.type == "thinking":
-                    self.add_log("thinking", block.thinking)
-                elif block.type == "text":
-                    assistant_text = block.text
+            choice = response.choices[0]
+            message = choice.message
+            try:
+                reasoning_content = message.reasoning_content
+                if reasoning_content:
+                    self.add_log("thinking", reasoning_content)
+            except AttributeError:
+                pass
+
+            try:
+                assistant_text = message.content
+                if assistant_text:
                     self.add_message("assistant_text", assistant_text)
                     self.add_log("output", assistant_text)
-                else:
-                    self.add_log("error", f"Unexpected block type: {block.type}", "red")
+            except AttributeError:
+                pass
 
-            if response.stop_reason in ['end_turn', 'max_tokens', 'stop_sequence']:
-                usage_str = f"usage:" \
-                           f"cache_read_input_tokens={response.usage.cache_read_input_tokens}, " \
-                           f"input_tokens={response.usage.input_tokens}, " \
-                           f"output_tokens={response.usage.output_tokens}"
-                self.add_log("usage", usage_str)
+            if choice.finish_reason in ["stop", "length"]:
+                pass
+            elif choice.finish_reason == "insufficient_system_resource":
+                self.add_log("warning", f"Insufficient system resource. Please try again later.", "yellow")
             else:
-                self.add_log("warning", f"stop_reason: {response.stop_reason}", "yellow")
+                self.add_log("warning", f"finish_reason: {choice.finish_reason}", "yellow")
+
+            usage = response.usage
+            usage_str = f"completion_tokens={usage.completion_tokens}, " \
+                        f"prompt_tokens={usage.prompt_tokens}, " \
+                        f"prompt_cache_hit_tokens={usage.prompt_cache_hit_tokens}, " \
+                        f"prompt_cache_miss_tokens={usage.prompt_cache_miss_tokens}, " \
+                        f"total_tokens={usage.total_tokens}"
+            if usage.completion_tokens_details is not None:
+                usage_str += f", reasoning_tokens={usage.completion_tokens_details.reasoning_tokens}"
+            self.add_log("usage", usage_str)
+
         except Exception:
             import traceback
             try:
@@ -272,7 +289,7 @@ class AgentWindow(BaseWindow):
         """
         message_widget = QWidget()
         message_layout = QVBoxLayout(message_widget)
-        message_layout.setContentsMargins(0, 5, 0, 5)
+        message_layout.setContentsMargins(0, 0, 0, 0)
 
         text_label = QLabel(text)
         text_label.setWordWrap(True)
@@ -282,7 +299,7 @@ class AgentWindow(BaseWindow):
             text_label.setStyleSheet("""
                 QLabel {
                     color: #FFFFFF;
-                    font-size: 14px;
+                    font-size: 18px;
                     background-color: #2A2A2A;
                     border-radius: 8px;
                     padding: 8px 12px;
@@ -292,7 +309,7 @@ class AgentWindow(BaseWindow):
             text_label.setStyleSheet("""
                 QLabel {
                     color: #FFFFFF;
-                    font-size: 14px;
+                    font-size: 18px;
                 }
             """)
         else:
