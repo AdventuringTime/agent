@@ -196,7 +196,7 @@ class AgentWindow(BaseWindow):
             return
 
         self.add_message("user_text", text)
-        final_text = "元数据：\n当前时间 " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n用户输入：\n" + text
+        final_text = text  # 暂时移除元数据注入，等待记忆系统完善
         self.add_log("input", f"thinking:{self.thinking_mode}, pro:{self.pro_mode}\n{final_text}")
 
         thinking_enabled = self.thinking_mode
